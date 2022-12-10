@@ -92,6 +92,22 @@ where
     }
 }
 
+pub fn part1_inner(input: &str) -> Result<String> {
+    const INTERESTING_CYCLES: &[usize] = &[20, 60, 100, 140, 180, 220];
+
+    let cpu = Cpu::from_input(input)?;
+
+    let sum = cpu
+        .enumerate()
+        .map(|(cycle_0_indexed, register)| (cycle_0_indexed + 1, register))
+        .filter(|(cycle, _)| INTERESTING_CYCLES.contains(cycle))
+        .map(|(cycle, register)| isize::try_from(cycle).expect("small number") * register)
+        .sum::<isize>()
+        .to_string();
+
+    Ok(sum)
+}
+
 pub fn part1() -> Result<String> {
     todo!()
 }
@@ -104,7 +120,7 @@ pub fn part2() -> Result<String> {
 mod tests {
     use crate::day09::Instruction;
 
-    use super::Cpu;
+    use super::{part1_inner, Cpu};
     use anyhow::Result;
 
     const LIGHT_WEIGHT_INPUT: &str = "noop
@@ -135,6 +151,160 @@ addx -5";
         assert_eq!(cpu.next(), Some(4));
         assert_eq!(cpu.next(), None);
         assert_eq!(cpu.register(), -1);
+
+        Ok(())
+    }
+
+    const MORE_REALISTIC: &str = "addx 15
+addx -11
+addx 6
+addx -3
+addx 5
+addx -1
+addx -8
+addx 13
+addx 4
+noop
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx -35
+addx 1
+addx 24
+addx -19
+addx 1
+addx 16
+addx -11
+noop
+noop
+addx 21
+addx -15
+noop
+noop
+addx -3
+addx 9
+addx 1
+addx -3
+addx 8
+addx 1
+addx 5
+noop
+noop
+noop
+noop
+noop
+addx -36
+noop
+addx 1
+addx 7
+noop
+noop
+noop
+addx 2
+addx 6
+noop
+noop
+noop
+noop
+noop
+addx 1
+noop
+noop
+addx 7
+addx 1
+noop
+addx -13
+addx 13
+addx 7
+noop
+addx 1
+addx -33
+noop
+noop
+noop
+addx 2
+noop
+noop
+noop
+addx 8
+noop
+addx -1
+addx 2
+addx 1
+noop
+addx 17
+addx -9
+addx 1
+addx 1
+addx -3
+addx 11
+noop
+noop
+addx 1
+noop
+addx 1
+noop
+noop
+addx -13
+addx -19
+addx 1
+addx 3
+addx 26
+addx -30
+addx 12
+addx -1
+addx 3
+addx 1
+noop
+noop
+noop
+addx -9
+addx 18
+addx 1
+addx 2
+noop
+noop
+addx 9
+noop
+noop
+noop
+addx -1
+addx 2
+addx -37
+addx 1
+addx 3
+noop
+addx 15
+addx -21
+addx 22
+addx -6
+addx 1
+noop
+addx 2
+addx 1
+noop
+addx -10
+noop
+noop
+addx 20
+addx 1
+addx 2
+addx 2
+addx -6
+addx -11
+noop
+noop
+noop";
+
+    #[test]
+    fn can_calculate_result() -> Result<()> {
+        assert_eq!(part1_inner(MORE_REALISTIC)?, "13140");
 
         Ok(())
     }
