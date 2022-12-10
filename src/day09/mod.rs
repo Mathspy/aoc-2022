@@ -109,7 +109,7 @@ pub fn part1_inner(input: &str) -> Result<String> {
 }
 
 pub fn part1() -> Result<String> {
-    todo!()
+    part1_inner(include_str!("./input.txt"))
 }
 
 pub fn part2() -> Result<String> {
