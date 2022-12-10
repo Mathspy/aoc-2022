@@ -6,6 +6,15 @@ enum Instruction {
     Add(isize),
 }
 
+impl Instruction {
+    fn cycles(&self) -> u8 {
+        match self {
+            Instruction::Noop => 1,
+            Instruction::Add(_) => 2,
+        }
+    }
+}
+
 struct Cpu<I> {
     instructions: I,
     current_instruction: Option<Instruction>,
@@ -45,6 +54,42 @@ impl Cpu<std::vec::IntoIter<Instruction>> {
             register: 1,
         })
     }
+
+    fn register(&self) -> isize {
+        self.register
+    }
+}
+
+impl<I> Iterator for Cpu<I>
+where
+    I: Iterator<Item = Instruction>,
+{
+    type Item = isize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.subcycle += 1;
+        let instruction_finished = match &self.current_instruction {
+            Some(instruction) if instruction.cycles() <= self.subcycle => {
+                match instruction {
+                    Instruction::Noop => {}
+                    Instruction::Add(amount) => self.register += amount,
+                };
+
+                true
+            }
+            Some(_) => false,
+            None => true,
+        };
+        if instruction_finished {
+            self.current_instruction = self.instructions.next();
+            self.subcycle = 0;
+        }
+
+        match self.current_instruction {
+            Some(_) => Some(self.register),
+            None => None,
+        }
+    }
 }
 
 pub fn part1() -> Result<String> {
@@ -75,6 +120,21 @@ addx -5";
         assert_eq!(instructions.next(), Some(Instruction::Noop));
         assert_eq!(instructions.next(), Some(Instruction::Add(3)));
         assert_eq!(instructions.next(), Some(Instruction::Add(-5)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn can_execute() -> Result<()> {
+        let mut cpu = Cpu::from_input(LIGHT_WEIGHT_INPUT)?;
+
+        assert_eq!(cpu.next(), Some(1));
+        assert_eq!(cpu.next(), Some(1));
+        assert_eq!(cpu.next(), Some(1));
+        assert_eq!(cpu.next(), Some(4));
+        assert_eq!(cpu.next(), Some(4));
+        assert_eq!(cpu.next(), None);
+        assert_eq!(cpu.register(), -1);
 
         Ok(())
     }
